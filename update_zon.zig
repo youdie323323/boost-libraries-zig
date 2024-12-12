@@ -2,7 +2,7 @@ const std = @import("std");
 const process = std.process;
 const fmt = std.fmt;
 
-const boost_version = "boost-1.86.0";
+const boost_version = "boost-1.87.0";
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

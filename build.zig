@@ -161,7 +161,7 @@ const cxxFlags: []const []const u8 = &.{
     "-Wformat",
 };
 
-const boost_version: std.SemanticVersion = .{ .major = 1, .minor = 86, .patch = 0 };
+const boost_version: std.SemanticVersion = .{ .major = 1, .minor = 87, .patch = 0 };
 
 pub fn boostLibraries(b: *std.Build, config: Config) *std.Build.Step.Compile {
     const shared = b.option(bool, "shared", "Build as shared library (default: false)") orelse false;
