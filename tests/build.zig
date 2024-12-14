@@ -43,11 +43,11 @@ fn buildTests(b: *std.Build, options: struct {
         }
         // if not header-only, link library
         if (std.mem.endsWith(u8, exe.name, "server"))
-            exe.linkLibrary(artifact);
+            exe.root_module.linkLibrary(artifact);
     }
 
     for (options.files) |file| {
-        exe.addCSourceFile(.{
+        exe.root_module.addCSourceFile(.{
             .file = b.path(file),
             .flags = &.{
                 "-std=c++20",
@@ -60,7 +60,7 @@ fn buildTests(b: *std.Build, options: struct {
     }
     if (exe.rootModuleTarget().abi != .msvc) {
         exe.linkLibCpp();
-        exe.defineCMacro("_GNU_SOURCE", null);
+        exe.root_module.addCMacro("_GNU_SOURCE", "");
     } else {
         exe.linkLibC();
     }
@@ -68,8 +68,8 @@ fn buildTests(b: *std.Build, options: struct {
     // for boost::asio/boost::beast/boost::cobalt
     if (std.mem.endsWith(u8, exe.name, "server")) {
         if (exe.rootModuleTarget().os.tag == .windows) {
-            exe.linkSystemLibrary("ws2_32");
-            exe.linkSystemLibrary("mswsock");
+            exe.root_module.linkSystemLibrary("ws2_32", .{});
+            exe.root_module.linkSystemLibrary("mswsock", .{});
         }
     }
 

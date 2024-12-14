@@ -180,7 +180,7 @@ pub fn boostLibraries(b: *std.Build, config: Config) *std.Build.Step.Compile {
 
     inline for (boost_libs) |name| {
         const boostLib = b.dependency(name, .{}).path("include");
-        lib.addIncludePath(boostLib);
+        lib.root_module.addIncludePath(boostLib);
     }
 
     // zig-pkg bypass (artifact need generate object file)
@@ -188,7 +188,7 @@ pub fn boostLibraries(b: *std.Build, config: Config) *std.Build.Step.Compile {
         \\ #include <boost/config.hpp>
     );
     lib.step.dependOn(&empty.step);
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = empty.getDirectory(),
         .files = &.{"empty.cc"},
         .flags = cxxFlags,
@@ -261,7 +261,7 @@ pub fn boostLibraries(b: *std.Build, config: Config) *std.Build.Step.Compile {
     if (lib.rootModuleTarget().abi == .msvc)
         lib.linkLibC()
     else {
-        lib.defineCMacro("_GNU_SOURCE", null);
+        lib.root_module.addCMacro("_GNU_SOURCE", "");
         lib.linkLibCpp();
     }
     return lib;
@@ -300,8 +300,8 @@ const boostLibrariesModules = struct {
 
 fn buildCobalt(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const cobaltPath = b.dependency("cobalt", .{}).path("src");
-    obj.defineCMacro("BOOST_COBALT_SOURCE", null);
-    obj.addCSourceFiles(.{
+    obj.root_module.addCMacro("BOOST_COBALT_SOURCE", "");
+    obj.root_module.addCSourceFiles(.{
         .root = cobaltPath,
         .files = &.{
             "channel.cpp",
@@ -318,7 +318,7 @@ fn buildCobalt(b: *std.Build, obj: *std.Build.Step.Compile) void {
 
 fn buildContainer(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const containerPath = b.dependency("container", .{}).path("src");
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = containerPath,
         .files = &.{
             "pool_resource.cpp",
@@ -333,7 +333,7 @@ fn buildContainer(b: *std.Build, obj: *std.Build.Step.Compile) void {
 
 fn buildFiber(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const fiberPath = b.dependency("fiber", .{}).path("src");
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = fiberPath,
         .files = &.{
             "algo/algorithm.cpp",
@@ -361,7 +361,7 @@ fn buildFiber(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildJson(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const jsonPath = b.dependency("json", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = jsonPath,
         .files = &.{
             "src.cpp",
@@ -373,7 +373,7 @@ fn buildJson(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildProcess(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const processPath = b.dependency("process", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = processPath,
         .files = &.{
             "detail/environment_posix.cpp",
@@ -403,7 +403,7 @@ fn buildProcess(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildSystem(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const systemPath = b.dependency("system", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = systemPath,
         .files = &.{
             "error_code.cpp",
@@ -415,8 +415,8 @@ fn buildSystem(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildAtomic(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const atomicPath = b.dependency("atomic", .{}).path("src");
 
-    obj.addIncludePath(atomicPath);
-    obj.addCSourceFiles(.{
+    obj.root_module.addIncludePath(atomicPath);
+    obj.root_module.addCSourceFiles(.{
         .root = atomicPath,
         .files = &.{
             "lock_pool.cpp",
@@ -424,7 +424,7 @@ fn buildAtomic(b: *std.Build, obj: *std.Build.Step.Compile) void {
         .flags = cxxFlags,
     });
     if (obj.rootModuleTarget().os.tag == .windows)
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = atomicPath,
             .files = &.{
                 "wait_on_address.cpp",
@@ -432,7 +432,7 @@ fn buildAtomic(b: *std.Build, obj: *std.Build.Step.Compile) void {
             .flags = cxxFlags,
         });
     if (std.Target.x86.featureSetHas(obj.rootModuleTarget().cpu.features, .sse2)) {
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = atomicPath,
             .files = &.{
                 "find_address_sse2.cpp",
@@ -441,7 +441,7 @@ fn buildAtomic(b: *std.Build, obj: *std.Build.Step.Compile) void {
         });
     }
     if (std.Target.x86.featureSetHas(obj.rootModuleTarget().cpu.features, .sse4_1)) {
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = atomicPath,
             .files = &.{
                 "find_address_sse41.cpp",
@@ -454,7 +454,7 @@ fn buildAtomic(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildRegex(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const regPath = b.dependency("regex", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = regPath,
         .files = &.{
             "posix_api.cpp",
@@ -468,17 +468,17 @@ fn buildFileSystem(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const fsPath = b.dependency("filesystem", .{}).path("src");
 
     if (obj.rootModuleTarget().os.tag == .windows) {
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = fsPath,
             .files = &.{"windows_file_codecvt.cpp"},
             .flags = cxxFlags,
         });
-        obj.defineCMacro("BOOST_USE_WINDOWS_H", null);
-        obj.defineCMacro("NOMINMAX", null);
+        obj.root_module.addCMacro("BOOST_USE_WINDOWS_H", "");
+        obj.root_module.addCMacro("NOMINMAX", "");
     }
-    obj.defineCMacro("BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF", null);
-    obj.addIncludePath(fsPath);
-    obj.addCSourceFiles(.{
+    obj.root_module.addCMacro("BOOST_FILESYSTEM_NO_CXX20_ATOMIC_REF", "");
+    obj.root_module.addIncludePath(fsPath);
+    obj.root_module.addCSourceFiles(.{
         .root = fsPath,
         .files = &.{
             "codecvt_error_category.cpp",
@@ -494,20 +494,20 @@ fn buildFileSystem(b: *std.Build, obj: *std.Build.Step.Compile) void {
         .flags = cxxFlags,
     });
     if (obj.rootModuleTarget().abi == .msvc) {
-        obj.defineCMacro("_SCL_SECURE_NO_WARNINGS", null);
-        obj.defineCMacro("_SCL_SECURE_NO_DEPRECATE", null);
-        obj.defineCMacro("_CRT_SECURE_NO_WARNINGS", null);
-        obj.defineCMacro("_CRT_SECURE_NO_DEPRECATE", null);
+        obj.root_module.addCMacro("_SCL_SECURE_NO_WARNINGS", "");
+        obj.root_module.addCMacro("_SCL_SECURE_NO_DEPRECATE", "");
+        obj.root_module.addCMacro("_CRT_SECURE_NO_WARNINGS", "");
+        obj.root_module.addCMacro("_CRT_SECURE_NO_DEPRECATE", "");
     }
 }
 
 fn buildContext(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const contextPath = b.dependency("context", .{}).path("src");
     const ctxPath = contextPath.getPath(b);
-    obj.addIncludePath(.{
+    obj.root_module.addIncludePath(.{
         .cwd_relative = b.pathJoin(&.{ ctxPath, "asm" }),
     }); // common.h
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = contextPath,
         .files = &.{
             "continuation.cpp",
@@ -528,132 +528,132 @@ fn buildContext(b: *std.Build, obj: *std.Build.Step.Compile) void {
         .flags = cxxFlags,
     });
     if (obj.rootModuleTarget().os.tag == .windows) {
-        obj.defineCMacro("BOOST_USE_WINFIB", null);
+        obj.root_module.addCMacro("BOOST_USE_WINFIB", "");
         obj.want_lto = false;
     } else {
-        obj.defineCMacro("BOOST_USE_UCONTEXT", null);
+        obj.root_module.addCMacro("BOOST_USE_UCONTEXT", "");
     }
     switch (obj.rootModuleTarget().cpu.arch) {
         .arm => switch (obj.rootModuleTarget().os.tag) {
             .windows => {
                 if (obj.rootModuleTarget().abi == .msvc) {
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_pe_armasm.asm" }) });
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_pe_armasm.asm" }) });
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_pe_armasm.asm" }) });
                 }
             },
             .macos => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_macho_gas.S" }) });
             },
             else => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm_aapcs_elf_gas.S" }) });
             },
         },
         .aarch64 => switch (obj.rootModuleTarget().os.tag) {
             .windows => {
                 if (obj.rootModuleTarget().abi == .msvc) {
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_pe_armasm.asm" }) });
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_pe_armasm.asm" }) });
-                    obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_pe_armasm.asm" }) });
+                    obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_pe_armasm.asm" }) });
                 }
             },
             .macos => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_macho_gas.S" }) });
             },
             else => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_arm64_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_arm64_aapcs_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_arm64_aapcs_elf_gas.S" }) });
             },
         },
         .riscv64 => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_riscv64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_riscv64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_riscv64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_riscv64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_riscv64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_riscv64_sysv_elf_gas.S" }) });
         },
         .x86 => switch (obj.rootModuleTarget().os.tag) {
             .windows => {
                 // @panic("undefined symbol:{j/m/o}-fcontext");
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_ms_pe_clang_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_ms_pe_clang_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_ms_pe_clang_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_ms_pe_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_ms_pe_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_ms_pe_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_ms_pe_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_ms_pe_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_ms_pe_gas.S" }) });
             },
             .macos => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_x86_64_sysv_macho_gas.S" }) });
             },
             else => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_sysv_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_sysv_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_sysv_elf_gas.S" }) });
             },
         },
         .x86_64 => switch (obj.rootModuleTarget().os.tag) {
             .windows => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_ms_pe_clang_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_ms_pe_clang_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_ms_pe_clang_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_ms_pe_clang_gas.S" }) });
             },
             .macos => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_sysv_macho_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_i386_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_sysv_macho_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_i386_x86_64_sysv_macho_gas.S" }) });
             },
             else => {
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_sysv_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_sysv_elf_gas.S" }) });
-                obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_x86_64_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_x86_64_sysv_elf_gas.S" }) });
+                obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_x86_64_sysv_elf_gas.S" }) });
             },
         },
         .s390x => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_s390x_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_s390x_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_s390x_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_s390x_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_s390x_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_s390x_sysv_elf_gas.S" }) });
         },
         .mips, .mipsel => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_mips32_o32_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_mips32_o32_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_mips32_o32_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_mips32_o32_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_mips32_o32_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_mips32_o32_elf_gas.S" }) });
         },
         .mips64, .mips64el => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_mips64_n64_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_mips64_n64_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_mips64_n64_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_mips64_n64_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_mips64_n64_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_mips64_n64_elf_gas.S" }) });
         },
         .loongarch64 => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_loongarch64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_loongarch64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_loongarch64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_loongarch64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_loongarch64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_loongarch64_sysv_elf_gas.S" }) });
         },
         .powerpc => {
             obj.addCSourceFile(.{
                 .file = .{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/tail_ontop_ppc32_sysv.cpp" }) },
                 .flags = cxxFlags,
             });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_ppc32_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_ppc32_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_ppc32_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_ppc32_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_ppc32_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_ppc32_sysv_elf_gas.S" }) });
         },
         .powerpc64 => {
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_ppc64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_ppc64_sysv_elf_gas.S" }) });
-            obj.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_ppc64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/jump_ppc64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/make_ppc64_sysv_elf_gas.S" }) });
+            obj.root_module.addAssemblyFile(.{ .cwd_relative = b.pathJoin(&.{ ctxPath, "asm/ontop_ppc64_sysv_elf_gas.S" }) });
         },
         else => @panic("Invalid arch"),
     }
@@ -662,7 +662,7 @@ fn buildContext(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildSerialization(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const serialPath = b.dependency("serialization", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = serialPath,
         .files = &.{
             "archive_exception.cpp",
@@ -721,7 +721,7 @@ fn buildSerialization(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildCharConv(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const cconvPath = b.dependency("charconv", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = cconvPath,
         .files = &.{
             "from_chars.cpp",
@@ -734,7 +734,7 @@ fn buildCharConv(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildRandom(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const rndPath = b.dependency("random", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = rndPath,
         .files = &.{
             "random_device.cpp",
@@ -746,7 +746,7 @@ fn buildRandom(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildException(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const exceptPath = b.dependency("exception", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = exceptPath,
         .files = &.{
             "clone_current_exception_non_intrusive.cpp",
@@ -758,8 +758,8 @@ fn buildException(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildStacktrace(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const stackPath = b.dependency("stacktrace", .{}).path("src");
 
-    obj.addIncludePath(stackPath);
-    obj.addCSourceFiles(.{
+    obj.root_module.addIncludePath(stackPath);
+    obj.root_module.addCSourceFiles(.{
         .root = stackPath,
         .files = &.{
             "addr2line.cpp",
@@ -771,18 +771,18 @@ fn buildStacktrace(b: *std.Build, obj: *std.Build.Step.Compile) void {
     });
     // TODO: fix https://github.com/ziglang/zig/issues/21308
     if (checkSystemLibrary(obj, "backtrace")) {
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = stackPath,
             .files = &.{
                 "backtrace.cpp",
             },
             .flags = cxxFlags,
         });
-        obj.linkSystemLibrary("backtrace");
+        obj.root_module.linkSystemLibrary("backtrace", .{});
     }
 
     if (obj.rootModuleTarget().abi == .msvc) {
-        obj.addCSourceFiles(.{
+        obj.root_module.addCSourceFiles(.{
             .root = stackPath,
             .files = &.{
                 "windbg.cpp",
@@ -791,15 +791,15 @@ fn buildStacktrace(b: *std.Build, obj: *std.Build.Step.Compile) void {
             .flags = cxxFlags,
         });
 
-        obj.linkSystemLibrary("dbgeng");
-        obj.linkSystemLibrary("ole32");
+        obj.root_module.linkSystemLibrary("dbgeng", .{});
+        obj.root_module.linkSystemLibrary("ole32", .{});
     }
 }
 
 fn buildURL(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const urlPath = b.dependency("url", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = urlPath,
         .files = &.{
             "authority_view.cpp",
@@ -877,7 +877,7 @@ fn buildURL(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildIOStreams(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const iostreamPath = b.dependency("iostreams", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = iostreamPath,
         .files = &.{
             "bzip2.cpp",
@@ -894,9 +894,9 @@ fn buildIOStreams(b: *std.Build, obj: *std.Build.Step.Compile) void {
 
 fn buildLog(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const logPath = b.dependency("log", .{}).path("src");
-    obj.defineCMacro("BOOST_LOG_NO_THREADS", null);
-    obj.addIncludePath(logPath);
-    obj.addCSourceFiles(.{
+    obj.root_module.addCMacro("BOOST_LOG_NO_THREADS", "");
+    obj.root_module.addIncludePath(logPath);
+    obj.root_module.addCSourceFiles(.{
         .root = logPath,
         .files = &.{
             "attribute_name.cpp",
@@ -945,7 +945,7 @@ fn buildLog(b: *std.Build, obj: *std.Build.Step.Compile) void {
         },
         .flags = cxxFlags,
     });
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = logPath,
         .files = switch (obj.rootModuleTarget().os.tag) {
             .windows => &.{
@@ -970,8 +970,8 @@ fn buildLog(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildNoWide(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const nwPath = b.dependency("nowide", .{}).path("src");
 
-    obj.addIncludePath(nwPath);
-    obj.addCSourceFiles(.{
+    obj.root_module.addIncludePath(nwPath);
+    obj.root_module.addCSourceFiles(.{
         .root = nwPath,
         .files = &.{
             "console_buffer.cpp",
@@ -988,8 +988,8 @@ fn buildNoWide(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildPython(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const pyPath = b.dependency("python", .{}).path("src");
 
-    obj.linkSystemLibrary("python3");
-    obj.addCSourceFiles(.{
+    obj.root_module.linkSystemLibrary("python3", .{});
+    obj.root_module.addCSourceFiles(.{
         .root = pyPath,
         .files = &.{
             "converter/arg_to_python_base.cpp",
@@ -1024,8 +1024,8 @@ fn buildPython(b: *std.Build, obj: *std.Build.Step.Compile) void {
     });
 
     if (checkSystemLibrary(obj, "npymath")) {
-        obj.linkSystemLibrary("npymath");
-        obj.addCSourceFiles(.{
+        obj.root_module.linkSystemLibrary("npymath", .{});
+        obj.root_module.addCSourceFiles(.{
             .root = pyPath,
             .files = &.{
                 "numpy/dtype.cpp",
@@ -1043,7 +1043,7 @@ fn buildPython(b: *std.Build, obj: *std.Build.Step.Compile) void {
 fn buildWave(b: *std.Build, obj: *std.Build.Step.Compile) void {
     const wavePath = b.dependency("wave", .{}).path("src");
 
-    obj.addCSourceFiles(.{
+    obj.root_module.addCSourceFiles(.{
         .root = wavePath,
         .files = &.{
             "cpplexer/re2clex/aq.cpp",
@@ -1068,25 +1068,26 @@ fn checkSystemLibrary(compile: *std.Build.Step.Compile, name: []const u8) bool {
     var is_linking_libc = false;
     var is_linking_libcpp = false;
 
-    var dep_it = compile.root_module.iterateDependencies(compile, true);
-    while (dep_it.next()) |dep| {
-        for (dep.module.link_objects.items) |link_object| {
-            switch (link_object) {
-                .system_lib => |lib| if (std.mem.eql(u8, lib.name, name)) return true,
-                else => continue,
+    for (compile.getCompileDependencies(true)) |some_compile| {
+        for (some_compile.root_module.getGraph().modules) |mod| {
+            for (mod.link_objects.items) |lo| {
+                switch (lo) {
+                    .system_lib => |lib| if (std.mem.eql(u8, lib.name, name)) return true,
+                    else => {},
+                }
             }
+            if (mod.link_libc != null) is_linking_libc = true;
+            if (mod.link_libcpp != null) is_linking_libcpp = true;
         }
-        if (dep.module.link_libc) |link_libc|
-            is_linking_libc = is_linking_libc or link_libc;
-        if (dep.module.link_libcpp) |link_libcpp|
-            is_linking_libcpp = is_linking_libcpp or (link_libcpp == true);
     }
 
-    if (compile.rootModuleTarget().is_libc_lib_name(name)) {
+    const target = compile.rootModuleTarget();
+
+    if (std.zig.target.isLibCLibName(target, name)) {
         return is_linking_libc;
     }
 
-    if (compile.rootModuleTarget().is_libcpp_lib_name(name)) {
+    if (std.zig.target.isLibCxxLibName(target, name)) {
         return is_linking_libcpp;
     }
 
