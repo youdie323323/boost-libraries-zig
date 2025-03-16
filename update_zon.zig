@@ -2,7 +2,7 @@ const std = @import("std");
 const process = std.process;
 const fmt = std.fmt;
 
-const boost_version = "boost-1.87.0";
+const boost_version = "boost-1.88.0.beta1";
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -144,6 +144,9 @@ const git_urls = [_][]const u8{
     "git+https://github.com/boostorg/type_erasure#" ++ boost_version,
     "git+https://github.com/boostorg/typeof#" ++ boost_version,
     "git+https://github.com/boostorg/units#" ++ boost_version,
+    "git+https://github.com/boostorg/hash2#" ++ boost_version,
+    "git+https://github.com/boostorg/parser#" ++ boost_version,
+    "git+https://github.com/boostorg/mqtt5#" ++ boost_version,
     "git+https://github.com/boostorg/function_types#" ++ boost_version,
     "git+https://github.com/boostorg/hof#" ++ boost_version,
     "git+https://github.com/boostorg/interval#" ++ boost_version,

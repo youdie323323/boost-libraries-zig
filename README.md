@@ -99,6 +99,14 @@ pub fn build(b: *std.Build) !void {
 }
 ```
 
+## How update zon dependencies
+
+Open [`update_zon.zig`](update_zon.zig) and change `const boost_version = "boost-version-tagged";` or add/sub url in `git_urls` list.
+
+```bash
+zig run -fsingle-threaded update_zon.zig
+```
+
 ## License
 
 see: [LICENSE](LICENSE)

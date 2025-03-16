@@ -118,6 +118,9 @@ const boost_libs = [_][]const u8{
     "heap",
     "msm",
     "coroutine2", // need boost.context
+    "parser",
+    "mqtt5", // need boost.asio
+    "hash2",
 };
 
 pub fn build(b: *std.Build) void {
