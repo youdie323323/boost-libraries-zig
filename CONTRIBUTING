@@ -1,0 +1,37 @@
+# Contributing to Boost Libraries Zig Build System
+
+## Getting Started
+
+1. Ensure you have [Zig](https://ziglang.org/download) v0.14.0 or master installed.
+
+## Development Options
+
+### Build Configuration Options
+
+- `-Dtarget`: Specify CPU architecture, OS, and ABI
+- `-Dcpu`: Target CPU features
+- `-Doptimize`: Control performance, safety, or binary size
+- Library-specific flags (e.g., `-Dcontext`, `-Djson`)
+- `-Dshared`: Build as shared library
+
+## Updating Dependencies
+
+1. Modify `update_zon.zig`
+2. Update Boost version or URLs
+3. Run:
+   
+```console
+zig run -fsingle-threaded update_zon.zig
+```
+
+## Submitting Contributions
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Ensure all tests pass
+5. Submit a pull request
+
+## License
+
+Contributions are subject to the project's [LICENSE](LICENSE)

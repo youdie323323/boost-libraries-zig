@@ -6,8 +6,8 @@ Replacing the [CMake](https://cmake.org/) and [B2](https://www.bfgroup.xyz/b2/) 
 
 
 > [!IMPORTANT]
-> For C++ projects, `zig c++` uses llvm-libunwind + llvm-libc++ (static-linking) by default.
-> Except, for MSVC target (`-nostdlib++`).
+> For C++ projects, `zig c++` uses LLVM's libunwind + libc++ (statically linked) by default.
+> This applies to all targets except MSVC, which uses `-nostdlib++` instead.
 
 
 ### Requirements
