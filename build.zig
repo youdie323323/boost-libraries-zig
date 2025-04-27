@@ -169,15 +169,13 @@ const boost_version: std.SemanticVersion = .{ .major = 1, .minor = 87, .patch = 
 pub fn boostLibraries(b: *std.Build, config: Config) *std.Build.Step.Compile {
     const shared = b.option(bool, "shared", "Build as shared library (default: false)") orelse false;
 
-    const lib = if (shared) b.addSharedLibrary(.{
+    const lib = b.addLibrary(.{
         .name = "boost",
-        .target = config.target,
-        .optimize = config.optimize,
-        .version = boost_version,
-    }) else b.addStaticLibrary(.{
-        .name = "boost",
-        .target = config.target,
-        .optimize = config.optimize,
+        .root_module = b.createModule(.{
+            .target = config.target,
+            .optimize = config.optimize,
+        }),
+        .linkage = if (shared) .dynamic else .static,
         .version = boost_version,
     });
 
