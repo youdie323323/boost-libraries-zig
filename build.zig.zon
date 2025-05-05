@@ -494,7 +494,7 @@
         },
         .tti = .{
             .url = "git+https://github.com/boostorg/tti#boost-1.88.0",
-            .hash = "placeholder",
+            .hash = "N-V-__8AAOZmCADODeMFdbLe1jAS_JVYPMQ3d3Jc3JyfDul9",
         },
     },
     .paths = .{""},
