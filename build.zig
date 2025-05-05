@@ -121,6 +121,7 @@ const boost_libs = [_][]const u8{
     "parser",
     "mqtt5", // need boost.asio
     "hash2",
+    "tti",
 };
 
 pub fn build(b: *std.Build) void {
