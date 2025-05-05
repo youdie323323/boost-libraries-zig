@@ -492,6 +492,10 @@
             .url = "git+https://github.com/boostorg/mqtt5#boost-1.88.0",
             .hash = "N-V-__8AAPoFDgDzQYXMN1ri90lHlrrKYVBzkauoMv8frLSA",
         },
+        .tti = .{
+            .url = "git+https://github.com/boostorg/tti#boost-1.88.0",
+            .hash = "placeholder",
+        },
     },
     .paths = .{""},
 }
