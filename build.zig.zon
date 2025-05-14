@@ -496,6 +496,10 @@
             .url = "git+https://github.com/boostorg/tti#boost-1.88.0",
             .hash = "N-V-__8AAOZmCADODeMFdbLe1jAS_JVYPMQ3d3Jc3JyfDul9",
         },
+        .ratio = .{
+            .url = "git+https://github.com/boostorg/ratio#boost-1.88.0",
+            .hash = "unko",
+        },
     },
     .paths = .{""},
 }
