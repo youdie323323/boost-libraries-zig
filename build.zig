@@ -122,6 +122,7 @@ const boost_libs = [_][]const u8{
     "mqtt5", // need boost.asio
     "hash2",
     "tti",
+    "ratio",
 };
 
 pub fn build(b: *std.Build) void {
