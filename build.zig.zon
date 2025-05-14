@@ -498,7 +498,7 @@
         },
         .ratio = .{
             .url = "git+https://github.com/boostorg/ratio#boost-1.88.0",
-            .hash = "unko",
+            .hash = "N-V-__8AADE0AwCfEIJLY6IXfnClHDX-3wkUainrzZ3c4t5O",
         },
     },
     .paths = .{""},
